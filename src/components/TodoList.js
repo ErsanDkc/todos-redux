@@ -1,10 +1,14 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggle, deleteTodo,todoItems, getTodosAsync } from "../redux/todos/todosSlice";
+import Error from "./Error";
+import Loading from "./Loading";
 
 function TodoList() {
   const todo = useSelector(todoItems);
   const activeFilter = useSelector((state) => state.todos.activeFilter);
+  const error = useSelector((state) => state.todos.error)
+  const isLoading = useSelector((state) => state.todos.isLoading)
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -26,6 +30,14 @@ function TodoList() {
       return item.completed === false;
     }
   });
+
+  if(isLoading) {
+    return <Loading />
+  }
+
+  if(error) {
+    return <Error message={error}/>
+  }
   return (
     <ul className="todo-list">
       {filtered.map((item) => (

@@ -1,13 +1,18 @@
-import { createSlice, nanoid, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 export const getTodosAsync = createAsyncThunk(
   "todos/getTodosAsync",
   async () => {
-    const res = await axios("http://localhost:7000/todos");
-    return await res.data;
+    const res = await axios(`${process.env.REACT_APP_BASE_ENDPOINT}/todos`);
+    return  res.data;
   }
 );
+
+export const addTodosAsync = createAsyncThunk("todos/addTodosAsync", async(data) => {
+  const res = await axios.post(`${process.env.REACT_APP_BASE_ENDPOINT}/todos`, data)
+  return res.data
+})
 
 export const todosSlice = createSlice({
   name: "todos",
@@ -16,19 +21,11 @@ export const todosSlice = createSlice({
     isLoading: false,
     error: null,
     activeFilter: "all",
+    addTodoIsLoading: false,
+    addTodoError: null
   },
   reducers: {
-    addTodo: {
-      reducer: (state, action) => {
-        state.items.push(action.payload);
-        localStorage.setItem("todos", JSON.stringify(state.items));
-      },
-      prepare: ({ title }) => {
-        return {
-          payload: { id: nanoid(), completed: false, title },
-        };
-      },
-    },
+    
 
     toggle: (state, action) => {
       const { id } = action.payload;
@@ -51,6 +48,7 @@ export const todosSlice = createSlice({
   },
   extraReducers : (builder) => {
     builder
+    //get todos
     .addCase(getTodosAsync.pending, (state,action) => {
       state.isLoading = true
     })
@@ -62,11 +60,23 @@ export const todosSlice = createSlice({
       state.isLoading =false
       state.error = action.error.message
     })
+    // add todos
+    .addCase(addTodosAsync.pending, (state,action) => {
+      state.addTodoIsLoading = true
+    })
+    .addCase(addTodosAsync.fulfilled, (state,action) => {
+      state.items.push(action.payload)
+      state.addTodoIsLoading = false
+    })
+    .addCase(addTodosAsync.rejected,(state,action) => {
+      state.addTodoIsLoading = false
+      state.addTodoError = action.error.message
+    })
   }
 });
 
 export const todoItems = (state) => state.todos.items;
 
-export const { addTodo, toggle, deleteTodo, changeFilter, completedDelete } =
+export const {  toggle, deleteTodo, changeFilter, completedDelete } =
   todosSlice.actions;
 export default todosSlice.reducer;
