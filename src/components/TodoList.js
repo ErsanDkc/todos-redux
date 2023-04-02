@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { toggle, deleteTodo,todoItems } from "../redux/todos/todosSlice";
+import { toggle, deleteTodo,todoItems, getTodosAsync } from "../redux/todos/todosSlice";
 
 function TodoList() {
   const todo = useSelector(todoItems);
   const activeFilter = useSelector((state) => state.todos.activeFilter);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getTodosAsync())
+  },[dispatch])
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure?")) {
