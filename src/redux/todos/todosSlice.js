@@ -14,6 +14,19 @@ export const addTodosAsync = createAsyncThunk("todos/addTodosAsync", async(data)
   return res.data
 })
 
+
+export const toggleTodosAsync = createAsyncThunk("todos/toggleTodosAsync", async({id,data}) => {
+  const res = await axios.patch(`${process.env.REACT_APP_BASE_ENDPOINT}/todos/${id}`, data)
+
+  return res.data
+})
+
+export const deleteTodosAsync = createAsyncThunk("todos/deleteTodosAsync", async(id) => {
+  await axios.delete(`${process.env.REACT_APP_BASE_ENDPOINT}/todos/${id}`)
+
+  return id
+})
+
 export const todosSlice = createSlice({
   name: "todos",
   initialState: {
@@ -27,17 +40,13 @@ export const todosSlice = createSlice({
   reducers: {
     
 
-    toggle: (state, action) => {
-      const { id } = action.payload;
-      const item = state.items.find((item) => item.id === id);
-      item.completed = !item.completed;
-    },
-    deleteTodo: (state, action) => {
-      const { id } = action.payload;
-      const item = state.items.filter((item) => item.id !== id);
-      state.items = item;
-      localStorage.setItem("todos", JSON.stringify(state.items));
-    },
+    
+    // deleteTodo: (state, action) => {
+    //   const { id } = action.payload;
+    //   const item = state.items.filter((item) => item.id !== id);
+    //   state.items = item;
+    //   localStorage.setItem("todos", JSON.stringify(state.items));
+    // },
     changeFilter: (state, action) => {
       state.activeFilter = action.payload;
     },
@@ -72,11 +81,27 @@ export const todosSlice = createSlice({
       state.addTodoIsLoading = false
       state.addTodoError = action.error.message
     })
+    //toggle Todo
+    .addCase(toggleTodosAsync.pending,(state,action) => {})
+    .addCase(toggleTodosAsync.fulfilled,(state,action) =>  {
+      console.log(action.payload)
+      const {id,completed} = action.payload
+      const index = state.items.findIndex((item) => item.id === id)
+      state.items[index].completed = completed
+    })
+    //delete Todo
+    .addCase(deleteTodosAsync.pending,(state,action) => {})
+    .addCase(deleteTodosAsync.fulfilled,(state,action) => {
+      console.log(action.payload)
+      const id = action.payload
+      const index = state.items.findIndex((item) => item.id === id)
+      state.items.splice(index,1)
+    })
   }
 });
 
 export const todoItems = (state) => state.todos.items;
 
-export const {  toggle, deleteTodo, changeFilter, completedDelete } =
+export const {  changeFilter, completedDelete } =
   todosSlice.actions;
 export default todosSlice.reducer;
