@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addTodosAsync } from "../redux/todos/todosSlice";
+import { addTodosAsync } from "../redux/todos/services";
 function Form() {
   const [title, setTitle] = useState("");
   const isLoading = useSelector((state) => state.todos.addTodoIsLoading);
@@ -8,6 +8,9 @@ function Form() {
   const dispatch = useDispatch();
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(title.trim() === "") {
+      return alert("Please enter todo..")
+    }
     await dispatch(addTodosAsync({ title }));
     setTitle("");
   };

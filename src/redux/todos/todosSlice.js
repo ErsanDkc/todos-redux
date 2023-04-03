@@ -1,31 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
-
-export const getTodosAsync = createAsyncThunk(
-  "todos/getTodosAsync",
-  async () => {
-    const res = await axios(`${process.env.REACT_APP_BASE_ENDPOINT}/todos`);
-    return  res.data;
-  }
-);
-
-export const addTodosAsync = createAsyncThunk("todos/addTodosAsync", async(data) => {
-  const res = await axios.post(`${process.env.REACT_APP_BASE_ENDPOINT}/todos`, data)
-  return res.data
-})
-
-
-export const toggleTodosAsync = createAsyncThunk("todos/toggleTodosAsync", async({id,data}) => {
-  const res = await axios.patch(`${process.env.REACT_APP_BASE_ENDPOINT}/todos/${id}`, data)
-
-  return res.data
-})
-
-export const deleteTodosAsync = createAsyncThunk("todos/deleteTodosAsync", async(id) => {
-  await axios.delete(`${process.env.REACT_APP_BASE_ENDPOINT}/todos/${id}`)
-
-  return id
-})
+import { createSlice } from "@reduxjs/toolkit";
+import { addTodosAsync,deleteTodosAsync,toggleTodosAsync,getTodosAsync } from "./services";
 
 export const todosSlice = createSlice({
   name: "todos",
@@ -33,7 +7,7 @@ export const todosSlice = createSlice({
     items: [],
     isLoading: false,
     error: null,
-    activeFilter: "all",
+    activeFilter: localStorage.getItem("activeFilter"),
     addTodoIsLoading: false,
     addTodoError: null
   },
@@ -41,19 +15,15 @@ export const todosSlice = createSlice({
     
 
     
-    // deleteTodo: (state, action) => {
-    //   const { id } = action.payload;
-    //   const item = state.items.filter((item) => item.id !== id);
-    //   state.items = item;
-    //   localStorage.setItem("todos", JSON.stringify(state.items));
-    // },
+   
     changeFilter: (state, action) => {
       state.activeFilter = action.payload;
     },
-    completedDelete: (state, action) => {
-      const completedItems = action.payload;
-      state.items = completedItems;
-    },
+    // completedDelete: (state, action) => {
+    //   const completedItems = action.payload;
+    //   state.items = completedItems;
+      
+    // },
   },
   extraReducers : (builder) => {
     builder
@@ -75,6 +45,7 @@ export const todosSlice = createSlice({
     })
     .addCase(addTodosAsync.fulfilled, (state,action) => {
       state.items.push(action.payload)
+      localStorage.setItem("Todos",JSON.stringify(state.items))
       state.addTodoIsLoading = false
     })
     .addCase(addTodosAsync.rejected,(state,action) => {
@@ -93,9 +64,14 @@ export const todosSlice = createSlice({
     .addCase(deleteTodosAsync.pending,(state,action) => {})
     .addCase(deleteTodosAsync.fulfilled,(state,action) => {
       console.log(action.payload)
+      // const id = action.payload
+      // const index = state.items.findIndex((item) => item.id === id)
+      // state.items.splice(index,1)
+      // localStorage.setItem("Todos",JSON.stringify(state.items))
       const id = action.payload
-      const index = state.items.findIndex((item) => item.id === id)
-      state.items.splice(index,1)
+      const filtered  = state.items.filter((item) => item.id !== id)
+      state.items = filtered
+      localStorage.setItem("Todos",JSON.stringify(filtered))
     })
   }
 });
